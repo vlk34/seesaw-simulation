@@ -11,32 +11,39 @@ export const balls = [];
 
 const seesaw = {
   x: canvas.width / 2,
-  y: canvas.height / 2,
-  width: 200,
-  height: 10,
+  y: canvas.height / 2 + 80,
+  width: 400,
+  height: 15,
 };
 
-// add kg and size variance later
-function randomColor() {
-  const colors = [
-    "red",
-    "green",
-    "blue",
-    "yellow",
-    "purple",
-    "orange",
-    "pink",
-    "brown",
-    "gray",
-    "black",
+function getBallStyle() {
+  const styles = [
+    { color: "#8B4513", border: "#654321" },
+    { color: "#CD853F", border: "#8B4513" },
+    { color: "#A0522D", border: "#654321" },
+    { color: "#D2691E", border: "#A0522D" },
+    { color: "#B8860B", border: "#8B6914" },
+    { color: "#2F4F4F", border: "#1C3030" },
   ];
-  return colors[Math.floor(Math.random() * colors.length)];
+  return styles[Math.floor(Math.random() * styles.length)];
 }
 
-function drawBall(x, y, radius, color) {
+function drawBall(x, y, radius, style) {
+  // main ball
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, 2 * Math.PI);
-  ctx.fillStyle = color;
+  ctx.fillStyle = style.color;
+  ctx.fill();
+
+  // border
+  ctx.strokeStyle = style.border;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // ball highlight
+  ctx.beginPath();
+  ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.2, 0, 2 * Math.PI);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
   ctx.fill();
 }
 
@@ -54,7 +61,7 @@ function animate() {
     const ball = balls[i];
 
     if (ball.isStopped) {
-      drawBall(ball.x, ball.y, ball.radius, ball.color);
+      drawBall(ball.x, ball.y, ball.radius, ball.style);
     } else {
       ball.vy += gravity;
       ball.y += ball.vy;
@@ -64,7 +71,7 @@ function animate() {
         continue;
       }
 
-      drawBall(ball.x, ball.y, ball.radius, ball.color);
+      drawBall(ball.x, ball.y, ball.radius, ball.style);
     }
   }
 
@@ -79,7 +86,7 @@ canvas.addEventListener("click", (event) => {
     x,
     y,
     radius: 20,
-    color: randomColor(),
+    style: getBallStyle(),
     vy: 0,
     isStopped: false,
   });

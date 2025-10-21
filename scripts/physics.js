@@ -1,21 +1,20 @@
 export function detectCollision(seesaw, balls) {
-  // get seesaw y + height / 2 position
-  // check all balls y + radius
-  // if they touch, stop the velocity of the ball
-  // if not nothing
-  for (let i = balls.length - 1; i >= 0; i--) {
-    const ball = balls[i];
-    console.log(ball.y);
-    console.log(seesaw.x - seesaw.width / 2);
+  // Calculate the top surface of the plank
+  const fulcrumHeight = 30;
+  const plankTopY = seesaw.y - fulcrumHeight / 2 - seesaw.height / 2;
+
+  for (let ball of balls) {
+    // check for horizontal constraints
     if (
-      ball.y + ball.radius >= seesaw.y - seesaw.height / 2 &&
       ball.x >= seesaw.x - seesaw.width / 2 &&
-      ball.x <= seesaw.x + seesaw.width / 2 &&
-      ball.y + ball.radius <= seesaw.y + seesaw.height / 2
+      ball.x <= seesaw.x + seesaw.width / 2
     ) {
-      balls[i].vy = 0;
-      balls[i].color = "black";
-      balls[i].isStopped = true;
+      // checjk for vertical constraints
+      if (ball.y + ball.radius >= plankTopY && !ball.isStopped) {
+        ball.y = plankTopY - ball.radius; // Position ball on top of plank
+        ball.vy = 0;
+        ball.isStopped = true;
+      }
     }
   }
 }
