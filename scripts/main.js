@@ -1,8 +1,20 @@
+import { detectCollision } from "./physics.js";
+import { drawSeesaw } from "./seesaw.js";
+import { clearBalls } from "./utils.js";
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+document.getElementById("clear-btn").addEventListener("click", clearBalls);
 
 const gravity = 0.05;
-const balls = [];
+export const balls = [];
+
+const seesaw = {
+  x: canvas.width / 2,
+  y: canvas.height / 2,
+  width: 200,
+  height: 10,
+};
 
 // add kg and size variance later
 function randomColor() {
@@ -29,23 +41,31 @@ function drawBall(x, y, radius, color) {
 }
 
 // clear
+// check collision
 // apply gravity
 // increase velocity so it stacks up
 // then add velocity to position
 function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  drawSeesaw(seesaw.x, seesaw.y, seesaw.width, seesaw.height, ctx);
+  detectCollision(seesaw, balls);
   for (let i = 0; i < balls.length; i++) {
     const ball = balls[i];
-    ball.vy += gravity;
-    ball.y += ball.vy;
 
-    if (ball.y - ball.radius > canvas.height) {
-      balls.splice(i, 1);
-      continue;
+    if (ball.isStopped) {
+      drawBall(ball.x, ball.y, ball.radius, ball.color);
+    } else {
+      ball.vy += gravity;
+      ball.y += ball.vy;
+
+      if (ball.y - ball.radius > canvas.height) {
+        balls.splice(i, 1);
+        continue;
+      }
+
+      drawBall(ball.x, ball.y, ball.radius, ball.color);
     }
-
-    drawBall(ball.x, ball.y, ball.radius, ball.color);
   }
 
   requestAnimationFrame(animate);
@@ -61,6 +81,7 @@ canvas.addEventListener("click", (event) => {
     radius: 20,
     color: randomColor(),
     vy: 0,
+    isStopped: false,
   });
 });
 
