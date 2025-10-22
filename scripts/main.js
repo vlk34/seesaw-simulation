@@ -28,7 +28,16 @@ function getBallStyle() {
   return styles[Math.floor(Math.random() * styles.length)];
 }
 
-function drawBall(x, y, radius, style) {
+function generateBallProperties() {
+  const weight = Math.floor(Math.random() * 10) + 1;
+  const radius = Math.sqrt(weight) * 10; // size is proportional to the sqrt of weight
+  return {
+    weight: weight,
+    radius: Math.max(12, Math.min(radius, 45)),
+  };
+}
+
+function drawBall(x, y, radius, style, weight) {
   // main ball
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, 2 * Math.PI);
@@ -45,6 +54,12 @@ function drawBall(x, y, radius, style) {
   ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.2, 0, 2 * Math.PI);
   ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
   ctx.fill();
+
+  // display weight on the ball
+  ctx.fillStyle = "white";
+  ctx.font = `bold ${Math.max(12, radius * 0.5)}px Arial`;
+  ctx.textAlign = "center";
+  ctx.fillText(`${weight}kg`, x, y + 4);
 }
 
 // clear
@@ -61,9 +76,9 @@ function animate() {
     const ball = balls[i];
 
     if (ball.isStopped) {
-      drawBall(ball.x, ball.y, ball.radius, ball.style);
+      drawBall(ball.x, ball.y, ball.radius, ball.style, ball.weight);
     } else {
-      ball.vy += gravity;
+      ball.vy += gravity * (ball.weight / 5); // scale the gravity by weight to make it realistic
       ball.y += ball.vy;
 
       if (ball.y - ball.radius > canvas.height) {
@@ -71,7 +86,7 @@ function animate() {
         continue;
       }
 
-      drawBall(ball.x, ball.y, ball.radius, ball.style);
+      drawBall(ball.x, ball.y, ball.radius, ball.style, ball.weight);
     }
   }
 
@@ -82,10 +97,13 @@ animate();
 
 canvas.addEventListener("click", (event) => {
   const { x, y } = getMousePosition(event);
+  const ballProps = generateBallProperties();
+
   balls.push({
     x,
     y,
-    radius: 20,
+    radius: ballProps.radius,
+    weight: ballProps.weight,
     style: getBallStyle(),
     vy: 0,
     isStopped: false,
