@@ -97,17 +97,24 @@ animate();
 
 canvas.addEventListener("click", (event) => {
   const { x, y } = getMousePosition(event);
-  const ballProps = generateBallProperties();
 
-  balls.push({
-    x,
-    y,
-    radius: ballProps.radius,
-    weight: ballProps.weight,
-    style: getBallStyle(),
-    vy: 0,
-    isStopped: false,
-  });
+  // seesaw top level calculation
+  const fulcrumHeight = 40;
+  const seesawTopY = seesaw.y - fulcrumHeight / 2 - seesaw.height / 2;
+
+  if (y < seesawTopY) {
+    const ballProps = generateBallProperties();
+
+    balls.push({
+      x,
+      y,
+      radius: ballProps.radius,
+      weight: ballProps.weight,
+      style: getBallStyle(),
+      vy: 0,
+      isStopped: false,
+    });
+  }
 });
 
 function getMousePosition(event) {
