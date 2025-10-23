@@ -1,20 +1,46 @@
 export function detectCollision(seesaw, balls) {
-  // Calculate the top surface of the plank
   const fulcrumHeight = 40;
-  const plankTopY = seesaw.y - fulcrumHeight / 2 - seesaw.height / 2;
+  const fulcrumY = seesaw.y - fulcrumHeight / 2;
 
   for (let ball of balls) {
-    // check for horizontal constraints
+    // check if ball is within the seesaw's horizontal bounds
     if (
       ball.x >= seesaw.x - seesaw.width / 2 &&
       ball.x <= seesaw.x + seesaw.width / 2
     ) {
-      // check for vertical constraints
-      if (ball.y + ball.radius >= plankTopY && !ball.isStopped) {
-        ball.y = plankTopY - ball.radius; // Position ball on top of plank
+      // calculate the rotated plank surface Y position at this X
+      const distanceFromCenter = ball.x - seesaw.x;
+      const rotatedPlankY =
+        fulcrumY +
+        distanceFromCenter * Math.sin(seesaw.rotation || 0) -
+        seesaw.height / 2;
+
+      // check if ball hits the rotated plank surface
+      if (ball.y + ball.radius >= rotatedPlankY && !ball.isStopped) {
+        ball.y = rotatedPlankY - ball.radius;
         ball.vy = 0;
         ball.isStopped = true;
+        ball.fixedDistanceFromCenter = ball.x - seesaw.x;
       }
+    }
+  }
+}
+
+export function updateBallPositions(seesaw, balls) {
+  const fulcrumHeight = 40;
+  const fulcrumY = seesaw.y - fulcrumHeight / 2;
+
+  for (let ball of balls) {
+    if (ball.isStopped && ball.fixedDistanceFromCenter !== undefined) {
+      // to make sure ball stays at the same distance from center when rotating
+      ball.x = seesaw.x + ball.fixedDistanceFromCenter;
+
+      // update Y position to follow the rotated seesaw surface
+      const rotatedPlankY =
+        fulcrumY +
+        ball.fixedDistanceFromCenter * Math.sin(seesaw.rotation || 0) -
+        seesaw.height / 2;
+      ball.y = rotatedPlankY - ball.radius;
     }
   }
 }
@@ -24,7 +50,6 @@ export function calculateTorque(seesaw, balls) {
 
   for (let ball of balls) {
     if (ball.isStopped) {
-      // distance from center of seesaw
       const distanceFromFulcrum = ball.x - seesaw.x;
       const torque = ball.weight * distanceFromFulcrum;
       totalTorque += torque;
@@ -38,10 +63,10 @@ export function updateSeesawRotation(seesaw, totalTorque, deltaTime = 1) {
   if (seesaw.rotation === undefined) seesaw.rotation = 0;
   if (seesaw.angularVelocity === undefined) seesaw.angularVelocity = 0;
 
-  // constants
-  const momentOfInertia = 1000; // resistance to rotation
-  const damping = 0.98; // reduces rotation over time
-  const maxRotation = Math.PI / 6; // limit rotation to 30 degrees
+  // constants , maybe remove later if it makes it too complicated to animate the rotation
+  const momentOfInertia = 1000;
+  const damping = 0.98;
+  const maxRotation = Math.PI / 6;
 
   // calculate angular acceleration from torque
   const angularAcceleration = totalTorque / momentOfInertia;

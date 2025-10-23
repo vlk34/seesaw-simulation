@@ -1,4 +1,9 @@
-import { detectCollision } from "./physics.js";
+import {
+  detectCollision,
+  calculateTorque,
+  updateSeesawRotation,
+  updateBallPositions,
+} from "./physics.js";
 import { drawSeesaw } from "./seesaw.js";
 import { clearBalls } from "./utils.js";
 
@@ -70,15 +75,29 @@ function drawBall(x, y, radius, style, weight) {
 function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  drawSeesaw(seesaw.x, seesaw.y, seesaw.width, seesaw.height, ctx);
+  // physics calculations
   detectCollision(seesaw, balls);
+  const totalTorque = calculateTorque(seesaw, balls);
+  updateSeesawRotation(seesaw, totalTorque);
+  updateBallPositions(seesaw, balls);
+
+  // draw seesaw with rotation
+  drawSeesaw(
+    seesaw.x,
+    seesaw.y,
+    seesaw.width,
+    seesaw.height,
+    ctx,
+    seesaw.rotation
+  );
+
   for (let i = 0; i < balls.length; i++) {
     const ball = balls[i];
 
     if (ball.isStopped) {
       drawBall(ball.x, ball.y, ball.radius, ball.style, ball.weight);
     } else {
-      ball.vy += gravity * (ball.weight / 5); // scale the gravity by weight to make it realistic
+      ball.vy += gravity * (ball.weight / 5);
       ball.y += ball.vy;
 
       if (ball.y - ball.radius > canvas.height) {
