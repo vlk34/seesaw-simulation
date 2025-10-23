@@ -1,6 +1,7 @@
 import {
   detectCollision,
   calculateTorque,
+  calculateWeights,
   updateSeesawRotation,
   updateBallPositions,
   getRotatedSeesawBounds,
@@ -80,11 +81,12 @@ function animate() {
   // physics calculations
   detectCollision(seesaw, balls);
   const torqueData = calculateTorque(seesaw, balls);
+  const weightData = calculateWeights(seesaw, balls);
   const rotationData = updateSeesawRotation(seesaw, torqueData);
   updateBallPositions(seesaw, balls);
 
   // update weight displays
-  updateWeightDisplays(rotationData.leftTorque, rotationData.rightTorque);
+  updateWeightDisplays(weightData.leftWeight, weightData.rightWeight);
 
   // update tilt angle display
   updateTiltDisplay(rotationData.angleDegrees);
@@ -178,14 +180,14 @@ function getMousePosition(event) {
   };
 }
 
-function updateWeightDisplays(leftTorque, rightTorque) {
+function updateWeightDisplays(leftWeight, rightWeight) {
   const leftWeightElement = document.getElementById("left-weight");
   const rightWeightElement = document.getElementById("right-weight");
 
   if (leftWeightElement)
-    leftWeightElement.textContent = `Left: ${Math.round(leftTorque)}`;
+    leftWeightElement.textContent = `Left: ${leftWeight}kg`;
   if (rightWeightElement)
-    rightWeightElement.textContent = `Right: ${Math.round(rightTorque)}`;
+    rightWeightElement.textContent = `Right: ${rightWeight}kg`;
 }
 
 function updateTiltDisplay(angleDegrees) {

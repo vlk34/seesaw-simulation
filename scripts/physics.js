@@ -151,6 +151,23 @@ export function calculateTorque(seesaw, balls) {
   return { leftTorque, rightTorque, totalTorque: rightTorque - leftTorque };
 }
 
+export function calculateWeights(seesaw, balls) {
+  let leftWeight = 0;
+  let rightWeight = 0;
+
+  for (let ball of balls) {
+    if (ball.isStopped) {
+      if (ball.x < seesaw.x) {
+        leftWeight += ball.weight;
+      } else {
+        rightWeight += ball.weight;
+      }
+    }
+  }
+
+  return { leftWeight, rightWeight };
+}
+
 export function updateSeesawRotation(seesaw, torqueData) {
   if (seesaw.rotation === undefined) seesaw.rotation = 0;
   if (seesaw.targetRotation === undefined) seesaw.targetRotation = 0;
