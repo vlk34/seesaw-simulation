@@ -7,8 +7,29 @@
     <link rel="stylesheet" href="styles/base.css" />
   </head>
   <body>
-    <canvas id="canvas" width="640" height="480"></canvas>
+    <div class="game-container">
+      <div id="tilt-angle" class="tilt-display">Tilt: 0°</div>
+
+      <div class="weight-displays">
+        <div id="left-weight" class="weight-display left">Left: 0</div>
+        <div id="right-weight" class="weight-display right">Right: 0</div>
+      </div>
+
+      <canvas id="canvas" width="640" height="480"></canvas>
+
+      <div class="controls">
+        <button id="clear-btn">Clear Balls</button>
+        <p class="instruction">
+          Click on the seesaw plank to drop balls (1-10kg)
+        </p>
+      </div>
+
+      <div id="log-section">
+        <h3>Drop Log</h3>
+        <div id="log-container"></div>
+      </div>
+    </div>
+
     <script type="module" src="scripts/main.js"></script>
-    <button id="clear-btn">clear balls</button>
   </body>
 </html>

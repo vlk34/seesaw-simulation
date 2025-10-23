@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  padding: 0;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -10,11 +10,62 @@ body {
   font-family: Arial, sans-serif;
 }
 
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.tilt-display {
+  background-color: #2f4f4f;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 18px;
+  text-align: center;
+  border: 2px solid #1c3030;
+}
+
+.weight-displays {
+  display: flex;
+  justify-content: space-between;
+  width: 640px;
+  max-width: 90vw;
+}
+
+.weight-display {
+  background-color: #8b4513;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 16px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.weight-display.left {
+  background-color: #cd853f;
+}
+
+.weight-display.right {
+  background-color: #a0522d;
+}
+
 canvas {
   border: 2px solid #8b4513;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  margin-bottom: 20px;
+  cursor: crosshair;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
 #clear-btn {
@@ -31,9 +82,42 @@ canvas {
   background-color: #654321;
 }
 
-#canvas {
-  border: 1px solid black;
-  display: block;
-  margin: 0 auto;
-  background-color: rgb(240, 240, 240);
+.instruction {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+
+#log-section {
+  width: 640px;
+  max-width: 90vw;
+}
+
+#log-section h3 {
+  margin: 0 0 10px 0;
+  color: #8b4513;
+  text-align: center;
+}
+
+#log-container {
+  height: 150px;
+  overflow-y: auto;
+  border: 2px solid #8b4513;
+  border-radius: 5px;
+  background-color: white;
+  padding: 10px;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+}
+
+.log-entry {
+  margin-bottom: 5px;
+  padding: 2px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.timestamp {
+  color: #666;
+  font-weight: bold;
 }

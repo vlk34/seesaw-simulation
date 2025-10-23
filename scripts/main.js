@@ -3,6 +3,8 @@ import {
   calculateTorque,
   updateSeesawRotation,
   updateBallPositions,
+  getRotatedSeesawBounds,
+  getConsistentSpawnBounds,
 } from "./physics.js";
 import { drawSeesaw } from "./seesaw.js";
 import { clearBalls } from "./utils.js";
@@ -17,8 +19,8 @@ export const balls = [];
 const seesaw = {
   x: canvas.width / 2,
   y: canvas.height / 2 + 80,
-  width: 400,
-  height: 15,
+  width: 420,
+  height: 18,
 };
 
 function getBallStyle() {
@@ -77,9 +79,15 @@ function animate() {
 
   // physics calculations
   detectCollision(seesaw, balls);
-  const totalTorque = calculateTorque(seesaw, balls);
-  updateSeesawRotation(seesaw, totalTorque);
+  const torqueData = calculateTorque(seesaw, balls);
+  const rotationData = updateSeesawRotation(seesaw, torqueData);
   updateBallPositions(seesaw, balls);
+
+  // update weight displays
+  updateWeightDisplays(rotationData.leftTorque, rotationData.rightTorque);
+
+  // update tilt angle display
+  updateTiltDisplay(rotationData.angleDegrees);
 
   // draw seesaw with rotation
   drawSeesaw(
@@ -97,7 +105,12 @@ function animate() {
     if (ball.isStopped) {
       drawBall(ball.x, ball.y, ball.radius, ball.style, ball.weight);
     } else {
-      ball.vy += gravity * (ball.weight / 5);
+      // apply gravity (reduced weight scaling to prevent excessive speed)
+      ball.vy += gravity * (1 + ball.weight / 20);
+
+      const maxVelocity = 8;
+      ball.vy = Math.min(ball.vy, maxVelocity);
+
       ball.y += ball.vy;
 
       if (ball.y - ball.radius > canvas.height) {
@@ -117,22 +130,43 @@ animate();
 canvas.addEventListener("click", (event) => {
   const { x, y } = getMousePosition(event);
 
-  // seesaw top level calculation
+  console.log("Click detected at:", x, y); // debug
+
+  // use consistent spawn bounds that work for any rotation angle
   const fulcrumHeight = 40;
+  const bounds = getConsistentSpawnBounds(seesaw);
   const seesawTopY = seesaw.y - fulcrumHeight / 2 - seesaw.height / 2;
 
-  if (y < seesawTopY) {
+  console.log("Consistent spawn bounds:", {
+    leftBound: bounds.leftBound,
+    rightBound: bounds.rightBound,
+    topY: seesawTopY - 50,
+    pivotY: bounds.pivotY,
+  }); // debug
+
+  // check if click is within the consistent spawn bounds and ONLY above seesaw level
+  const isOnPlank =
+    x >= bounds.leftBound && x <= bounds.rightBound && y < seesawTopY; // only allow clicking ABOVE the plank, not on or below it
+
+  console.log("Is on plank:", isOnPlank); // debug log
+
+  if (isOnPlank) {
     const ballProps = generateBallProperties();
+
+    console.log("Creating ball:", ballProps); // debug log
 
     balls.push({
       x,
-      y,
+      y: Math.min(y, seesawTopY - ballProps.radius), // ensure ball starts above the plank
       radius: ballProps.radius,
       weight: ballProps.weight,
       style: getBallStyle(),
       vy: 0,
       isStopped: false,
     });
+
+    // save state to localStorage
+    saveGameState();
   }
 });
 
@@ -143,3 +177,70 @@ function getMousePosition(event) {
     y: event.clientY - rect.top,
   };
 }
+
+function updateWeightDisplays(leftTorque, rightTorque) {
+  const leftWeightElement = document.getElementById("left-weight");
+  const rightWeightElement = document.getElementById("right-weight");
+
+  if (leftWeightElement)
+    leftWeightElement.textContent = `Left: ${Math.round(leftTorque)}`;
+  if (rightWeightElement)
+    rightWeightElement.textContent = `Right: ${Math.round(rightTorque)}`;
+}
+
+function updateTiltDisplay(angleDegrees) {
+  const tiltElement = document.getElementById("tilt-angle");
+
+  if (tiltElement) {
+    const direction = angleDegrees > 0 ? "→" : angleDegrees < 0 ? "←" : "";
+    tiltElement.textContent = `Tilt: ${Math.abs(angleDegrees)}°${direction}`;
+  }
+}
+
+function saveGameState() {
+  const gameState = {
+    balls: balls.map((ball) => ({
+      x: ball.x,
+      y: ball.y,
+      radius: ball.radius,
+      weight: ball.weight,
+      style: ball.style,
+      isStopped: ball.isStopped,
+      fixedDistanceFromCenter: ball.fixedDistanceFromCenter,
+    })),
+    seesaw: {
+      rotation: seesaw.rotation,
+      targetRotation: seesaw.targetRotation,
+    },
+  };
+  localStorage.setItem("seesawGame", JSON.stringify(gameState));
+}
+
+function loadGameState() {
+  const savedState = localStorage.getItem("seesawGame");
+  if (savedState) {
+    try {
+      const gameState = JSON.parse(savedState);
+
+      // Restore balls
+      balls.length = 0; // Clear current balls
+      gameState.balls.forEach((ballData) => {
+        balls.push({
+          ...ballData,
+          vy: 0, // Reset velocity
+        });
+      });
+
+      // Restore seesaw state
+      if (gameState.seesaw) {
+        seesaw.rotation = gameState.seesaw.rotation || 0;
+        seesaw.targetRotation = gameState.seesaw.targetRotation || 0;
+      }
+    } catch (error) {
+      console.error("Error loading game state:", error);
+    }
+  }
+}
+
+// Load state on page load
+loadGameState();
